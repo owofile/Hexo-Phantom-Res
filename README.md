@@ -1,57 +1,53 @@
-# Hexo HTML转Markdown工具
+# Hexo HTML to Markdown Converter
 
-## 简介
+[English](./README.md) | [中文](./README.zh.md) | [日本語](./README.ja.md)
 
-Hexo HTML转Markdown工具是一个Python脚本，用于将Hexo生成的HTML文件转换为Markdown文件。该工具提供了一个简单的GUI界面，用户可以选择源目录和输出目录，然后一键完成转换过程。转换过程中会保留文章的标题、日期、标签等元数据，并正确处理代码块。
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)](https://www.python.org/) [![Beautiful Soup](https://img.shields.io/badge/Beautiful_Soup-4.0+-green)](https://www.crummy.com/software/BeautifulSoup/) [![Markdownify](https://img.shields.io/badge/Markdownify-0.11.6-orange)](https://github.com/matthewwithanm/python-markdownify) [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-## 功能特点
+## Introduction
 
-- **提取核心内容**：只提取文章主体部分，忽略导航栏、页脚等无关内容。
-- **处理代码块**：正确解析并转换Hexo的highlight代码块和其他常规代码块。
-- **生成Front Matter**：提取并生成Markdown的Front Matter头部信息，包括标题、日期和标签。
-- **批量转换**：支持批量转换源目录下的所有`index.html`文件。
-- **进度显示**：提供进度条和日志记录，方便用户了解转换进度和状态。
+The Hexo HTML to Markdown Converter is a Python script that converts Hexo-generated HTML files into Markdown files. The tool provides a simple GUI interface where users can select the source directory and output directory, and then convert files with a single click. The conversion process retains article metadata such as titles, dates, and tags, and correctly handles code blocks.
 
-## 安装依赖
+## Usage Guide
 
-在运行该工具之前，需要安装以下Python库：
+### 1. Install Dependencies
+
+Before running the tool, ensure you have installed the required Python libraries:
 
 ```bash
 pip install beautifulsoup4 markdownify
 ```
 
-## 使用方法
+### 2. Download the Script
 
-### 1. 下载脚本
+You can download the `Hexo Phantom Res.py` script from GitHub or any other code hosting platform.
 
-你可以从GitHub或其他代码托管平台下载`Hexo Phantom Res.py`脚本。
+### 3. Run the Script
 
-### 2. 运行脚本
-
-确保你已经安装了所需的依赖库，然后运行脚本：
+Make sure you have installed the required dependencies, then run the script:
 
 ```bash
 python Hexo Phantom Res.py
 ```
 
-### 3. 使用GUI界面
+### 4. Use the GUI Interface
 
-1. **选择源目录**：
-   - 点击“选择源文件夹”按钮，选择包含Hexo生成的HTML文件的目录。
-   - 脚本会自动查找该目录及其子目录下的所有`index.html`文件。
-2. **选择输出目录**：
-   - 点击“选择输出位置”按钮，选择保存转换后的Markdown文件的目录。
-3. **开始转换**：
-   - 点击“开始转换”按钮，脚本会开始批量转换HTML文件为Markdown文件。
-   - 进度条会显示转换进度，日志区域会记录每一步的转换状态。
+1. **Select Source Directory**:
+   - Click the "Select Source Folder" button to choose the directory containing Hexo-generated HTML files.
+   - The script will automatically find all `index.html` files in the directory and its subdirectories.
+2. **Select Output Directory**:
+   - Click the "Select Output Location" button to choose the directory where the converted Markdown files will be saved.
+3. **Start Conversion**:
+   - Click the "Start Conversion" button to begin converting HTML files to Markdown files.
+   - A progress bar will display the conversion progress, and the log area will record the status of each step.
 
-### 4. 查看结果
+### 5. View the Results
 
-转换完成后，你可以在指定的输出目录中找到生成的Markdown文件。
+After the conversion is complete, you can find the generated Markdown files in the specified output directory.
 
-## 示例
+## Example
 
-假设你的源目录结构如下：
+Assume your source directory structure is as follows:
 
 ```
 source_dir/
@@ -67,19 +63,19 @@ source_dir/
                 └── index.html
 ```
 
-运行脚本并选择上述源目录和输出目录后，生成的Markdown文件将保存在输出目录中，文件名分别为`hexo.md`和`newblog.md`。
+Running the script and selecting the above source and output directories will save the generated Markdown files in the output directory, with filenames `hexo.md` and `newblog.md`.
 
-## 注意事项
+## Notes
 
-- **源目录**：确保源目录包含Hexo生成的HTML文件，并且文件名为`index.html`。
-- **输出目录**：确保输出目录存在，或者脚本有权限创建新目录。
-- **代码块处理**：工具会自动处理Hexo的highlight代码块和其他常规代码块，确保代码在Markdown中正确显示。
+- **Source Directory**: Ensure the source directory contains Hexo-generated HTML files with the filename `index.html`.
+- **Output Directory**: Ensure the output directory exists, or the script has permission to create new directories.
+- **Code Block Handling**: The tool automatically handles Hexo's highlight code blocks and other regular code blocks, ensuring code is correctly displayed in the output.
 
-## 联系
+## Contact
 
-如果你在使用过程中遇到任何问题，欢迎通过以下方式联系：
+If you encounter any issues while using the tool, feel free to contact us via:
 
-- **GitHub Issues**：[提交问题](https://github.com/你的用户名/你的仓库/issues)
-- **邮箱**：你的邮箱地址
+- **GitHub Issues**: [Submit an Issue](https://github.com/yourusername/yourrepository/issues)
+- **Email**: your-email@example.com
 
-希望这个工具能帮助你顺利地将Hexo生成的HTML文件转换为Markdown文件！如果有任何建议或改进的地方，欢迎随时反馈。
+We hope this tool helps you convert Hexo-generated HTML files into Markdown files smoothly! If you have any suggestions or improvements, please let us know.
