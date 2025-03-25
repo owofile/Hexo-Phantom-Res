@@ -69,5 +69,5 @@ source_dir/
 如果在使用工具时遇到任何问题，请随时通过以下方式联系我们：
 
 GitHub Issues：提交问题
-电子邮件：your-email@example.com
+
 我们希望这个工具能帮助你顺利地将 Hexo 生成的 HTML 文件转换为 Markdown 文件！如果你有任何建议或改进建议，请随时告知我们。
