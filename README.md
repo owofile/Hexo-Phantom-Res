@@ -75,6 +75,6 @@ Running the script and selecting the above source and output directories will sa
 
 If you encounter any issues while using the tool, feel free to contact us via:
 
-- **GitHub Issues**: [Submit an Issue](https://github.com/yourusername/yourrepository/issues)
+- **GitHub Issues**: [Submit an Issue](https://github.com/NANAFREE/Hexo-Phantom-Res/issues)
 
 We hope this tool helps you convert Hexo-generated HTML files into Markdown files smoothly! If you have any suggestions or improvements, please let us know.
