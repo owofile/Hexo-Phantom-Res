@@ -5,9 +5,6 @@ import markdownify
 import re
 import os
 
-#目前BUG
-#无法识别大部分文章Code，转换后有格式错误
-
 
 def convert_html_to_markdown(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -55,7 +52,7 @@ def convert_html_to_markdown(html_content):
         code_content = '\n'.join(code_lines)
         
         # 生成Markdown代码块
-        code_block = f"\n``{language}\n{code_content}\n```\n"
+        code_block = f"\n```{language}\n{code_content}\n```\n"
         figure.replace_with(code_block)
 
     # 处理常规pre代码块（非Hexo特殊结构）
