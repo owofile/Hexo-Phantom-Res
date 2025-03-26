@@ -1,22 +1,19 @@
 # Hexo HTML to Markdown Converter
 
 <p align="center">
-
    <img src="./logo.png" alt="Logo" width="200">
-
-   <p>
-      [English](./README.md) | [中文](./README.zh.md) | [日本語](./README.ja.md)
-   </p>
-
-   <p>
-      [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)](https://www.python.org/) 
-      [![Beautiful Soup](https://img.shields.io/badge/Beautiful_Soup-4.0+-green)](https://www.crummy.com/software/BeautifulSoup/) 
-      [![Markdownify](https://img.shields.io/badge/Markdownify-0.11.6-orange)](https://github.com/matthewwithanm/python-markdownify) 
-      [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-   </p>
-
 </p>
 
+<p align="center">
+   <a href="./README.md">English</a> | <a href="./README.zh.md">中文</a> | <a href="./README.ja.md">日本語</a>
+</p>
+
+<p align="center">
+   <img src="https://img.shields.io/badge/Python-3.8%2B-blue?logo=python" alt="Python">
+   <img src="https://img.shields.io/badge/Beautiful_Soup-4.0+-green" alt="Beautiful Soup">
+   <img src="https://img.shields.io/badge/Markdownify-0.11.6-orange" alt="Markdownify">
+   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
+</p>
 
 
 
