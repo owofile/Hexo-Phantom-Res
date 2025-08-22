@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import markdownify
 import re
 import os
-
+import sys
 
 def convert_html_to_markdown(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -20,7 +20,7 @@ def convert_html_to_markdown(html_content):
     front_matter += f"title: {title}\n"
     front_matter += f"date: {date}\n"
     if tags:
-        front_matter += f"tags: [{', '.join(tags)}]\n"  # 修改为单行列表格式
+        front_matter += f"tags: [{', '.join(tags)}]\n"
     front_matter += "---\n\n"
     
     # 提取文章主体
@@ -34,36 +34,27 @@ def convert_html_to_markdown(html_content):
         if element.find_parents(['header', 'footer', 'nav']):
             element.decompose()
     
-    # 处理Hexo的highlight代码块（包裹在<figure>中的结构）
+    # 处理Hexo的highlight代码块
     for figure in article.find_all('figure', class_='highlight'):
-        # 从figure的class中提取语言类型（如"highlight sh" -> "sh"）
         language_classes = [cls for cls in figure.get('class', []) if cls != 'highlight']
         language = language_classes[0] if language_classes else ''
         
-        # 提取所有代码行
         code_lines = []
         pre = figure.find('pre')
         if pre:
-            # 处理带<span class="line">的Hexo格式
             for line in pre.find_all('span', class_='line'):
-                code_lines.append(line.get_text().replace('\n', ''))  # 移除行内换行
-            # 或直接获取pre的文本（根据实际HTML结构选择）
-            # code_content = pre.get_text('\n').strip()
-        code_content = '\n'.join(code_lines)
-        
-        # 生成Markdown代码块
-        code_block = f"\n```{language}\n{code_content}\n```\n"
-        figure.replace_with(code_block)
-
-    # 处理常规pre代码块（非Hexo特殊结构）
+                code_lines.append(line.get_text().replace('\n', ''))
+            code_content = '\n'.join(code_lines)
+            code_block = f"\n```{language}\n{code_content}\n```\n"
+            figure.replace_with(code_block)
+    
+    # 处理常规pre代码块
     for pre in article.find_all('pre'):
-        # 跳过已被figure处理过的pre
         if pre.find_parent('figure', class_='highlight'):
             continue
-        
+            
         code = pre.find('code')
         if code:
-            # 原有语言提取逻辑
             language = ''
             for cls in code.get('class', []):
                 if cls.startswith('language-'):
@@ -72,13 +63,10 @@ def convert_html_to_markdown(html_content):
             code_block = f"\n```{language}\n{code.get_text()}\n```\n"
             pre.replace_with(code_block)
         else:
-            # 无语言标识的普通代码块
             pre.replace_with(f"\n```\n{pre.get_text()}\n```\n")
-
+    
     # 转换剩余HTML为Markdown
     markdown_body = markdownify.markdownify(str(article), heading_style="ATX")
-    
-    # 合并Front Matter和正文，并清理多余空行
     full_markdown = front_matter + re.sub(r'\n{3,}', '\n\n', markdown_body.strip())
     return full_markdown
 
@@ -95,7 +83,6 @@ def select_output_directory():
         output_entry.insert(0, output_dir)
 
 def start_conversion():
-    global root  # 声明root为全局变量
     source_dir = source_entry.get()
     output_dir = output_entry.get()
     
@@ -105,14 +92,12 @@ def start_conversion():
     
     log_text.delete(1.0, tk.END)
     progress_bar['value'] = 0
-    root.update_idletasks()  # 确保root引用Tkinter主窗口对象
+    root.update_idletasks()
     
-    # 增加过滤列表
     ignore_folders = {"about", "archives", "css", "friends", "images", "jpg", "js", "lib", "page", "png", "tags"}
-    
     html_files = []
-    for root_dir, dirs, files in os.walk(source_dir):  # 修改变量名以避免与全局root冲突
-        # 过滤目录
+    
+    for root_dir, dirs, files in os.walk(source_dir):
         dirs[:] = [d for d in dirs if d not in ignore_folders]
         for file in files:
             if file == "index.html":
@@ -127,97 +112,168 @@ def start_conversion():
         try:
             with open(html_file, 'r', encoding='utf-8') as f:
                 html = f.read()
+            
             md_content = convert_html_to_markdown(html)
             if md_content:
                 folder_name = os.path.basename(os.path.dirname(html_file))
                 md_file_path = os.path.join(output_dir, f"{folder_name}.md")
+                
                 with open(md_file_path, 'w', encoding='utf-8') as f:
                     f.write(md_content)
+                
                 log_text.insert(tk.END, f"转换完成: {folder_name}.md\n")
-                log_text.see(tk.END)
-                root.update_idletasks()
-                progress_bar['value'] = (i + 1) / total_files * 100
             else:
                 log_text.insert(tk.END, f"未找到文章主题: {html_file}\n")
-                log_text.see(tk.END)
-                root.update_idletasks()
+                
         except Exception as e:
             log_text.insert(tk.END, f"转换失败: {html_file} - {str(e)}\n")
-            log_text.see(tk.END)
-            root.update_idletasks()
+        
+        log_text.see(tk.END)
+        root.update_idletasks()
+        progress_bar['value'] = (i + 1) / total_files * 100
 
 def main():
     global source_entry, output_entry, log_text, progress_bar, root
     
-    root = tk.Tk()
-    root.title("Hexo HTML转Markdown工具")
-    root.geometry("800x600")
-    root.configure(bg='#f0f0f0')  # 设置背景颜色
-    
-    # 设置现代主题风格
-    style = ttk.Style()
-    style.theme_use('clam')
-    
-    # 主容器框架
-    main_frame = ttk.Frame(root)
-    main_frame.pack(padx=20, pady=20, fill='both', expand=True)
-
-    # 设置现代字体
-    font_label = ('微软雅黑', 10)
-    font_entry = ('微软雅黑', 9)
-    font_button = ('微软雅黑', 10, 'bold')
-    
-    # 第一部分：源目录选择
-    source_frame = ttk.LabelFrame(main_frame, text=" 源目录设置 ", padding=(10, 5))
-    source_frame.pack(fill='x', pady=5)
-    
-    ttk.Label(source_frame, text="选择源文件夹:", font=font_label).grid(row=0, column=0, sticky='w')
-    source_entry = ttk.Entry(source_frame, width=50, font=font_entry)
-    source_entry.grid(row=1, column=0, padx=(0, 5), sticky='ew')
-    ttk.Button(source_frame, text="浏览...", command=select_source_directory, 
-              style='Accent.TButton').grid(row=1, column=1, sticky='e')
-    
-    # 第二部分：输出目录选择
-    output_frame = ttk.LabelFrame(main_frame, text=" 输出目录设置 ", padding=(10, 5))
-    output_frame.pack(fill='x', pady=10)
-    
-    ttk.Label(output_frame, text="选择输出位置:", font=font_label).grid(row=0, column=0, sticky='w')
-    output_entry = ttk.Entry(output_frame, width=50, font=font_entry)
-    output_entry.grid(row=1, column=0, padx=(0, 5), sticky='ew')
-    ttk.Button(output_frame, text="浏览...", command=select_output_directory, 
-              style='Accent.TButton').grid(row=1, column=1, sticky='e')
-    
-    # 转换按钮
-    btn_convert = ttk.Button(main_frame, text="开始转换", command=start_conversion, 
-                            style='Accent.TButton')
-    btn_convert.pack(pady=15, ipadx=20, ipady=5)
-
-    # 日志区域
-    log_frame = ttk.LabelFrame(main_frame, text=" 转换日志 ", padding=(10, 5))
-    log_frame.pack(fill='both', expand=True)
-    
-    log_text = tk.Text(log_frame, width=70, height=10, font=font_entry, 
-                      bg='#ffffff', fg='#333333', wrap='word')
-    log_text.pack(fill='both', expand=True)
-    
-    # 进度条
-    progress_bar = ttk.Progressbar(main_frame, orient="horizontal", 
-                                  length=500, mode="determinate")
-    progress_bar.pack(fill='x', pady=10)
-
-    # 样式配置
-    style.configure('Accent.TButton', font=font_button, 
-                   foreground='white', background='#2c7be5',
-                   padding=6, bordercolor='#2c7be5')
-    style.map('Accent.TButton',
-             foreground=[('pressed', 'white'), ('active', 'white')],
-             background=[('pressed', '#1c5cb7'), ('active', '#256fd9')])
-    
-    # 设置列和行的权重
-    source_frame.columnconfigure(0, weight=1)
-    output_frame.columnconfigure(0, weight=1)
-    
-    root.mainloop()
+    try:
+        # 创建主窗口并设置更小的尺寸
+        root = tk.Tk()
+        root.title("Hexo HTML转Markdown")
+        root.geometry("700x500")  # 窗口尺寸从800x550调整为700x500
+        root.resizable(True, True)  # 允许调整窗口大小
+        
+        # 设置主题 - 跨平台兼容
+        style = ttk.Style()
+        if sys.platform.startswith('darwin'):  # macOS系统
+            style.theme_use('aqua')  # 使用macOS原生主题
+        else:
+            style.theme_use('clam')  # Windows和Linux使用clam主题
+        
+        # 跨平台字体设置
+        if sys.platform.startswith('darwin'):  # macOS
+            default_font = ('-apple-system', 10)
+        elif sys.platform.startswith('win32'):  # Windows
+            default_font = ('Segoe UI', 10)
+        else:  # Linux
+            default_font = ('Ubuntu', 10)
+            
+        font_entry = (default_font[0], 9)
+        font_button = (default_font[0], 10, 'bold')
+        
+        # 主容器，使用padding创建留白
+        main_frame = ttk.Frame(root, padding=20)
+        main_frame.pack(fill='both', expand=True)
+        
+        # 标题标签
+        title_label = ttk.Label(
+            main_frame, 
+            text="Hexo HTML 转 Markdown", 
+            font=(default_font[0], 14, 'bold')
+        )
+        title_label.pack(anchor='w', pady=(0, 15))  # 减少标题下方间距
+        
+        # 添加分隔线增强视觉层次
+        separator = ttk.Separator(main_frame, orient='horizontal')
+        separator.pack(fill='x', pady=(0, 15))
+        
+        # 目录选择区域 - 优化布局
+        directory_frame = ttk.Frame(main_frame)
+        directory_frame.pack(fill='x', pady=(0, 15))
+        
+        # 源目录选择
+        ttk.Label(directory_frame, text="源目录:", font=default_font).grid(row=0, column=0, sticky='w', pady=3)
+        source_entry = ttk.Entry(directory_frame, font=font_entry)
+        source_entry.grid(row=1, column=0, sticky='ew', padx=(0, 10), pady=2)
+        ttk.Button(
+            directory_frame, 
+            text="浏览...", 
+            command=select_source_directory,
+            width=8  # 统一按钮宽度
+        ).grid(row=1, column=1, sticky='w', pady=2)
+        
+        # 输出目录选择
+        ttk.Label(directory_frame, text="输出目录:", font=default_font).grid(row=2, column=0, sticky='w', pady=3)
+        output_entry = ttk.Entry(directory_frame, font=font_entry)
+        output_entry.grid(row=3, column=0, sticky='ew', padx=(0, 10), pady=2)
+        ttk.Button(
+            directory_frame, 
+            text="浏览...", 
+            command=select_output_directory,
+            width=8  # 统一按钮宽度
+        ).grid(row=3, column=1, sticky='w', pady=2)
+        
+        # 设置列权重，使输入框自适应宽度
+        directory_frame.columnconfigure(0, weight=1)
+        
+        # 转换按钮 - 优化样式和位置
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill='x', pady=(0, 15))
+        
+        convert_button = ttk.Button(
+            button_frame, 
+            text="开始转换", 
+            command=start_conversion,
+            width=15
+        )
+        convert_button.pack(anchor='e')  # 按钮右对齐
+        
+        # 日志和进度区域 - 优化比例
+        log_frame = ttk.Frame(main_frame)
+        log_frame.pack(fill='both', expand=True)
+        
+        # 日志标题
+        ttk.Label(log_frame, text="转换日志:", font=default_font).pack(anchor='w')
+        
+        # 日志文本框 - 优化高度
+        log_text = tk.Text(
+            log_frame, 
+            height=7,  # 调整日志区域高度
+            font=font_entry,
+            wrap='word',
+            bd=1, 
+            relief='solid',
+            highlightthickness=0
+        )
+        log_text.pack(fill='both', expand=True, pady=(5, 10))
+        
+        # 进度条
+        progress_bar = ttk.Progressbar(log_frame, orient="horizontal", length=100, mode="determinate")
+        progress_bar.pack(fill='x')
+        
+        root.mainloop()
+        
+    except Exception as e:
+        # 错误处理窗口
+        error_root = tk.Tk()
+        error_root.title("启动错误")
+        error_root.geometry("400x150")
+        
+        error_frame = ttk.Frame(error_root, padding=20)
+        error_frame.pack(fill='both', expand=True)
+        
+        # 根据系统选择合适字体
+        if sys.platform.startswith('darwin'):
+            error_font = ('-apple-system', 10)
+        elif sys.platform.startswith('win32'):
+            error_font = ('Segoe UI', 10)
+        else:
+            error_font = ('Ubuntu', 10)
+            
+        ttk.Label(
+            error_frame, 
+            text=f"程序启动失败:\n{str(e)}", 
+            wraplength=350,
+            font=error_font
+        ).pack(anchor='w', pady=(0, 15))
+        
+        ttk.Button(
+            error_frame, 
+            text="确定", 
+            command=error_root.quit,
+            width=10
+        ).pack(anchor='e')
+        
+        error_root.mainloop()
 
 if __name__ == "__main__":
     main()
