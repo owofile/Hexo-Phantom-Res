@@ -23,8 +23,33 @@ def convert_html_to_markdown(html_content):
         front_matter += f"tags: [{', '.join(tags)}]\n"
     front_matter += "---\n\n"
     
-    # 提取文章主体
-    article = soup.find('article', class_='post')
+    # 提取文章主体 - 增强兼容性，尝试多种选择器
+    article = None
+    # 尝试多种常见的文章容器选择器
+    article_selectors = [
+        {'tag': 'article', 'class': 'post'},
+        {'tag': 'div', 'class': 'post'},
+        {'tag': 'div', 'class': 'post-content'},
+        {'tag': 'div', 'class': 'article-content'},
+        {'tag': 'div', 'class': 'entry-content'},
+        {'tag': 'div', 'class': 'post-body'},
+        {'tag': 'section', 'class': 'post-content'},
+        {'tag': 'div', 'attrs': {'id': 'post-content'}},
+        {'tag': 'div', 'attrs': {'id': 'article-content'}},
+        {'tag': 'div', 'attrs': {'id': 'content'}},
+    ]
+    
+    for selector in article_selectors:
+        if selector.get('class'):
+            article = soup.find(selector['tag'], class_=selector['class'])
+        elif selector.get('attrs'):
+            article = soup.find(selector['tag'], attrs=selector['attrs'])
+        else:
+            article = soup.find(selector['tag'])
+            
+        if article:
+            break
+    
     if not article:
         log_text.insert(tk.END, "错误: 未找到文章主体\n")
         return None
