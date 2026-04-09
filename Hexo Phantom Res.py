@@ -118,6 +118,7 @@ def start_conversion():
     log_text.delete(1.0, tk.END)
     progress_bar['value'] = 0
     root.update_idletasks()
+    status_label.config(text="正在扫描目录…")
     
     ignore_folders = {"about", "archives", "css", "friends", "images", "jpg", "js", "lib", "page", "png", "tags"}
     html_files = []
@@ -127,17 +128,19 @@ def start_conversion():
         for file in files:
             if file == "index.html":
                 html_files.append(os.path.join(root_dir, file))
-    
+
     total_files = len(html_files)
     if total_files == 0:
         log_text.insert(tk.END, "未找到任何index.html文件\n")
+        status_label.config(text="未检测到可转换页面")
         return
-    
+
+    status_label.config(text=f"开始转换，共 {total_files} 篇")
     for i, html_file in enumerate(html_files):
         try:
             with open(html_file, 'r', encoding='utf-8') as f:
                 html = f.read()
-            
+
             md_content = convert_html_to_markdown(html)
             if md_content:
                 folder_name = os.path.basename(os.path.dirname(html_file))
@@ -152,117 +155,147 @@ def start_conversion():
                 
         except Exception as e:
             log_text.insert(tk.END, f"转换失败: {html_file} - {str(e)}\n")
-        
+
         log_text.see(tk.END)
         root.update_idletasks()
         progress_bar['value'] = (i + 1) / total_files * 100
+        status_label.config(text=f"进度 {i + 1}/{total_files}")
+
+    status_label.config(text="转换完成，Markdown 已生成")
 
 def main():
-    global source_entry, output_entry, log_text, progress_bar, root
+    global source_entry, output_entry, log_text, progress_bar, root, status_label
     
     try:
-        # 创建主窗口并设置更小的尺寸
+        # 创建主窗口并设置尺寸
         root = tk.Tk()
         root.title("Hexo HTML转Markdown")
-        root.geometry("700x500")  # 窗口尺寸从800x550调整为700x500
-        root.resizable(True, True)  # 允许调整窗口大小
-        
-        # 设置主题 - 跨平台兼容
-        style = ttk.Style()
-        if sys.platform.startswith('darwin'):  # macOS系统
-            style.theme_use('aqua')  # 使用macOS原生主题
+        root.geometry("900x620")
+        root.minsize(780, 520)
+        root.resizable(True, True)
+
+        # 色板与字体
+        palette = {
+            'bg': '#f4f5f7',
+            'surface': '#ffffff',
+            'surface_alt': '#f9fafb',
+            'border': '#e3e6ef',
+            'accent': '#2563eb',
+            'accent_dark': '#1d4ed8',
+            'muted': '#6b7280',
+            'text': '#1f2933'
+        }
+
+        if sys.platform.startswith('darwin'):
+            base_font = 'SF Pro Display'
+        elif sys.platform.startswith('win32'):
+            base_font = 'Bahnschrift'
         else:
-            style.theme_use('clam')  # Windows和Linux使用clam主题
-        
-        # 跨平台字体设置
-        if sys.platform.startswith('darwin'):  # macOS
-            default_font = ('-apple-system', 10)
-        elif sys.platform.startswith('win32'):  # Windows
-            default_font = ('Segoe UI', 10)
-        else:  # Linux
-            default_font = ('Ubuntu', 10)
-            
-        font_entry = (default_font[0], 9)
-        font_button = (default_font[0], 10, 'bold')
-        
-        # 主容器，使用padding创建留白
-        main_frame = ttk.Frame(root, padding=20)
+            base_font = 'Ubuntu'
+
+        body_font = (base_font, 11)
+        small_font = (base_font, 10)
+        title_font = (base_font, 20, 'bold')
+        accent_font = (base_font, 11, 'bold')
+
+        # 设置主题与全局样式
+        style = ttk.Style()
+        theme = 'aqua' if sys.platform.startswith('darwin') else 'clam'
+        style.theme_use(theme)
+
+        root.configure(bg=palette['bg'])
+        style.configure('.', background=palette['bg'], foreground=palette['text'], font=body_font)
+        style.configure('TFrame', background=palette['bg'])
+        style.configure('Card.TFrame', background=palette['surface'], relief='flat')
+        style.configure('CardInner.TFrame', background=palette['surface_alt'], relief='flat')
+        style.configure('Title.TLabel', background=palette['bg'], foreground=palette['text'], font=title_font)
+        style.configure('Subtitle.TLabel', background=palette['bg'], foreground=palette['muted'], font=small_font)
+        style.configure('CardTitle.TLabel', background=palette['surface'], foreground=palette['text'], font=(base_font, 13, 'bold'))
+        style.configure('CardSubtitle.TLabel', background=palette['surface'], foreground=palette['muted'], font=small_font)
+        style.configure('Accent.TButton', background=palette['accent'], foreground='#ffffff', padding=(18, 10), font=accent_font)
+        style.map('Accent.TButton', background=[('active', palette['accent_dark']), ('disabled', palette['border'])])
+        style.configure('Ghost.TButton', background=palette['surface'], foreground=palette['accent'], padding=(12, 8))
+        style.map('Ghost.TButton', background=[('active', palette['surface_alt'])], foreground=[('active', palette['accent_dark'])])
+        style.configure('Accent.Horizontal.TProgressbar', background=palette['accent'], troughcolor=palette['surface_alt'], bordercolor=palette['surface_alt'])
+
+        # 主容器
+        main_frame = ttk.Frame(root, padding=30)
         main_frame.pack(fill='both', expand=True)
-        
-        # 标题标签
-        title_label = ttk.Label(
-            main_frame, 
-            text="Hexo HTML 转 Markdown", 
-            font=(default_font[0], 14, 'bold')
-        )
-        title_label.pack(anchor='w', pady=(0, 15))  # 减少标题下方间距
-        
-        # 添加分隔线增强视觉层次
-        separator = ttk.Separator(main_frame, orient='horizontal')
-        separator.pack(fill='x', pady=(0, 15))
-        
-        # 目录选择区域 - 优化布局
-        directory_frame = ttk.Frame(main_frame)
-        directory_frame.pack(fill='x', pady=(0, 15))
-        
-        # 源目录选择
-        ttk.Label(directory_frame, text="源目录:", font=default_font).grid(row=0, column=0, sticky='w', pady=3)
-        source_entry = ttk.Entry(directory_frame, font=font_entry)
-        source_entry.grid(row=1, column=0, sticky='ew', padx=(0, 10), pady=2)
-        ttk.Button(
-            directory_frame, 
-            text="浏览...", 
-            command=select_source_directory,
-            width=8  # 统一按钮宽度
-        ).grid(row=1, column=1, sticky='w', pady=2)
-        
-        # 输出目录选择
-        ttk.Label(directory_frame, text="输出目录:", font=default_font).grid(row=2, column=0, sticky='w', pady=3)
-        output_entry = ttk.Entry(directory_frame, font=font_entry)
-        output_entry.grid(row=3, column=0, sticky='ew', padx=(0, 10), pady=2)
-        ttk.Button(
-            directory_frame, 
-            text="浏览...", 
-            command=select_output_directory,
-            width=8  # 统一按钮宽度
-        ).grid(row=3, column=1, sticky='w', pady=2)
-        
-        # 设置列权重，使输入框自适应宽度
-        directory_frame.columnconfigure(0, weight=1)
-        
-        # 转换按钮 - 优化样式和位置
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill='x', pady=(0, 15))
-        
-        convert_button = ttk.Button(
-            button_frame, 
-            text="开始转换", 
-            command=start_conversion,
-            width=15
-        )
-        convert_button.pack(anchor='e')  # 按钮右对齐
-        
-        # 日志和进度区域 - 优化比例
-        log_frame = ttk.Frame(main_frame)
-        log_frame.pack(fill='both', expand=True)
-        
-        # 日志标题
-        ttk.Label(log_frame, text="转换日志:", font=default_font).pack(anchor='w')
-        
-        # 日志文本框 - 优化高度
+        main_frame.columnconfigure(0, weight=1)
+
+        # 顶部信息卡片
+        hero_card = ttk.Frame(main_frame, style='Card.TFrame', padding=24)
+        hero_card.grid(row=0, column=0, sticky='ew')
+
+        ttk.Label(hero_card, text="Hexo HTML 转 Markdown", style='Title.TLabel').pack(anchor='w')
+        ttk.Label(
+            hero_card,
+            text="批量将已部署的 Hexo 文章恢复为 Markdown，并自动补齐 Front Matter。",
+            style='Subtitle.TLabel',
+            wraplength=720,
+            padding=(0, 8, 0, 0)
+        ).pack(anchor='w')
+
+        # 目录设置卡片
+        directory_card = ttk.Frame(main_frame, style='Card.TFrame', padding=24)
+        directory_card.grid(row=1, column=0, sticky='ew', pady=(20, 0))
+        directory_card.columnconfigure(1, weight=1)
+
+        ttk.Label(directory_card, text="工作目录", style='CardTitle.TLabel').grid(row=0, column=0, columnspan=3, sticky='w')
+        ttk.Label(
+            directory_card,
+            text="指定 Hexo 生成的静态站点位置以及导出的 Markdown 保存位置。",
+            style='CardSubtitle.TLabel'
+        ).grid(row=1, column=0, columnspan=3, sticky='w', pady=(4, 16))
+
+        ttk.Label(directory_card, text="源目录", font=body_font, background=palette['surface']).grid(row=2, column=0, sticky='w')
+        source_entry = ttk.Entry(directory_card, font=small_font)
+        source_entry.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(6, 18), padx=(0, 10))
+        ttk.Button(directory_card, text="浏览", style='Ghost.TButton', command=select_source_directory).grid(row=3, column=2, sticky='e')
+
+        ttk.Label(directory_card, text="输出目录", font=body_font, background=palette['surface']).grid(row=4, column=0, sticky='w')
+        output_entry = ttk.Entry(directory_card, font=small_font)
+        output_entry.grid(row=5, column=0, columnspan=2, sticky='ew', pady=(6, 0), padx=(0, 10))
+        ttk.Button(directory_card, text="浏览", style='Ghost.TButton', command=select_output_directory).grid(row=5, column=2, sticky='e')
+
+        # 操作卡片
+        action_card = ttk.Frame(main_frame, style='Card.TFrame', padding=24)
+        action_card.grid(row=2, column=0, sticky='ew', pady=(20, 0))
+        action_card.columnconfigure(0, weight=1)
+
+        ttk.Label(action_card, text="准备完成即可一键转换", style='CardTitle.TLabel').grid(row=0, column=0, sticky='w')
+        ttk.Label(
+            action_card,
+            text="转换过程中不会修改原始文件，仅在目标目录写入 Markdown。",
+            style='CardSubtitle.TLabel'
+        ).grid(row=1, column=0, sticky='w', pady=(4, 18))
+
+        ttk.Button(action_card, text="开始转换", style='Accent.TButton', command=start_conversion).grid(row=2, column=0, sticky='e')
+
+        # 日志与进度
+        log_card = ttk.Frame(main_frame, style='Card.TFrame', padding=24)
+        log_card.grid(row=3, column=0, sticky='nsew', pady=(20, 0))
+        main_frame.rowconfigure(3, weight=1)
+
+        ttk.Label(log_card, text="转换日志", style='CardTitle.TLabel').pack(anchor='w')
+        status_label = ttk.Label(log_card, text="等待操作", style='CardSubtitle.TLabel')
+        status_label.pack(anchor='w', pady=(2, 12))
+
         log_text = tk.Text(
-            log_frame, 
-            height=7,  # 调整日志区域高度
-            font=font_entry,
+            log_card,
+            height=8,
+            font=small_font,
             wrap='word',
-            bd=1, 
-            relief='solid',
-            highlightthickness=0
+            bd=0,
+            highlightthickness=0,
+            bg=palette['surface_alt'],
+            fg=palette['text'],
+            relief='flat',
+            insertbackground=palette['accent']
         )
-        log_text.pack(fill='both', expand=True, pady=(5, 10))
-        
-        # 进度条
-        progress_bar = ttk.Progressbar(log_frame, orient="horizontal", length=100, mode="determinate")
+        log_text.pack(fill='both', expand=True, pady=(0, 16))
+
+        progress_bar = ttk.Progressbar(log_card, orient="horizontal", mode="determinate", style='Accent.Horizontal.TProgressbar')
         progress_bar.pack(fill='x')
         
         root.mainloop()
