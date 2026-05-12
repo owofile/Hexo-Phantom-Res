@@ -8,25 +8,37 @@ import sys
 
 def convert_html_to_markdown(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
-    
-    # 提取Front Matter头部信息
-    title = soup.find('h1', class_='posttitle').get_text(strip=True) if soup.find('h1', class_='posttitle') else 'Untitled'
-    date_element = soup.find('time', {'class': 'dt-published'})
-    date = date_element['datetime'] if date_element else ''
-    tags = [tag.get_text(strip=True) for tag in soup.find_all('a', class_='p-category', rel='tag')]
-    
-    # 构建YAML Front Matter
+
+    title_elem = soup.find('h1', class_='article-title-regular')
+    if not title_elem:
+        title_elem = soup.find('h1', class_='posttitle')
+    title = title_elem.get_text(strip=True) if title_elem else 'Untitled'
+
+    date = ''
+    date_elem = soup.find('time', {'class': 'dt-published'})
+    if date_elem:
+        date = date_elem['datetime']
+    else:
+        meta_dates = soup.find_all('span', class_='desktop')
+        for m in meta_dates:
+            txt = m.get_text(strip=True)
+            if txt and re.match(r'\d{4}-\d{2}-\d{2}', txt):
+                date = txt
+                break
+
+    tags = [tag.get_text(strip=True).lstrip('#') for tag in soup.find_all('a', href=lambda h: h and '/tags/' in h and '/blog/tags/' in h)]
+
     front_matter = "---\n"
     front_matter += f"title: {title}\n"
     front_matter += f"date: {date}\n"
     if tags:
         front_matter += f"tags: [{', '.join(tags)}]\n"
     front_matter += "---\n\n"
-    
-    # 提取文章主体 - 增强兼容性，尝试多种选择器
+
     article = None
-    # 尝试多种常见的文章容器选择器
     article_selectors = [
+        {'tag': 'div', 'class': 'article-content'},
+        {'tag': 'div', 'class': 'markdown-body'},
         {'tag': 'article', 'class': 'post'},
         {'tag': 'div', 'class': 'post'},
         {'tag': 'div', 'class': 'post-content'},
@@ -38,60 +50,77 @@ def convert_html_to_markdown(html_content):
         {'tag': 'div', 'attrs': {'id': 'article-content'}},
         {'tag': 'div', 'attrs': {'id': 'content'}},
     ]
-    
+
     for selector in article_selectors:
         if selector.get('class'):
-            article = soup.find(selector['tag'], class_=selector['class'])
+            article = soup.find(selector['tag'], class_=re.compile(selector['class']))
         elif selector.get('attrs'):
             article = soup.find(selector['tag'], attrs=selector['attrs'])
         else:
             article = soup.find(selector['tag'])
-            
         if article:
             break
-    
+
     if not article:
         log_text.insert(tk.END, "错误: 未找到文章主体\n")
         return None
-    
-    # 清理导航栏、页脚等无关元素
-    for element in article.find_all(['header', 'footer', 'div', 'span', 'ul', 'li']):
-        if element.find_parents(['header', 'footer', 'nav']):
-            element.decompose()
-    
-    # 处理Hexo的highlight代码块
-    for figure in article.find_all('figure', class_='highlight'):
-        language_classes = [cls for cls in figure.get('class', []) if cls != 'highlight']
-        language = language_classes[0] if language_classes else ''
-        
-        code_lines = []
-        pre = figure.find('pre')
-        if pre:
-            for line in pre.find_all('span', class_='line'):
-                code_lines.append(line.get_text().replace('\n', ''))
-            code_content = '\n'.join(code_lines)
-            code_block = f"\n```{language}\n{code_content}\n```\n"
-            figure.replace_with(code_block)
-    
-    # 处理常规pre代码块
-    for pre in article.find_all('pre'):
-        if pre.find_parent('figure', class_='highlight'):
+
+    for cls in ['post-copyright-info', 'article-nav', 'comment-container', 'article-header',
+                'post-tags-box', 'toc-content-container', 'article-content-container',
+                'article-prev', 'article-next', 'post-tools']:
+        for elem in article.find_all(class_=re.compile(cls)):
+            elem.decompose()
+
+    for elem in article.find_all(text=lambda t: t and '[Pasted' in t):
+        parent = elem.parent
+        if parent:
+            parent.decompose()
+
+    first_h1 = article.find('h1')
+    if first_h1:
+        first_h1.decompose()
+
+    for code_container in article.find_all('div', class_='code-container'):
+        lang = code_container.get('data-rel', '')
+        figure = code_container.find('figure', class_=re.compile(r'highlight'))
+        if figure:
+            code_elem = figure.find('td', class_='code')
+            if code_elem:
+                lines = [span.get_text() for span in code_elem.find_all('span', class_=re.compile(r'^line')) if span.get_text()]
+                code_block = f"\n```{lang}\n{chr(10).join(lines)}\n```\n"
+                code_container.replace_with(code_block)
+        else:
+            code = code_container.find('code')
+            if code:
+                code_container.replace_with(f"\n```{lang}\n{code.get_text()}\n```\n")
+
+    for figure in article.find_all('figure', class_=re.compile(r'highlight')):
+        if figure.find_parent('div', class_='code-container'):
             continue
-            
+        code_elem = figure.find('td', class_='code')
+        if code_elem:
+            lang_classes = [cls for cls in figure.get('class', []) if cls not in ('highlight', 'iseeu') and not cls.startswith('highlight')]
+            lang = lang_classes[0] if lang_classes else ''
+            lines = [span.get_text() for span in code_elem.find_all('span', class_=re.compile(r'^line')) if span.get_text()]
+            code_block = f"\n```{lang}\n{chr(10).join(lines)}\n```\n"
+            figure.replace_with(code_block)
+
+    for pre in article.find_all('pre'):
+        if pre.find_parent('figure', class_=re.compile(r'highlight')) or pre.find_parent('div', class_='code-container'):
+            continue
         code = pre.find('code')
         if code:
-            language = ''
+            lang = ''
             for cls in code.get('class', []):
                 if cls.startswith('language-'):
-                    language = cls.split('-')[1]
+                    lang = cls.split('-')[1]
                     break
-            code_block = f"\n```{language}\n{code.get_text()}\n```\n"
+            code_block = f"\n```{lang}\n{code.get_text()}\n```\n"
             pre.replace_with(code_block)
         else:
             pre.replace_with(f"\n```\n{pre.get_text()}\n```\n")
-    
-    # 转换剩余HTML为Markdown
-    markdown_body = markdownify.markdownify(str(article), heading_style="ATX")
+
+    markdown_body = markdownify.markdownify(str(article), heading_style="ATX", links_callback=lambda href, text: href if href and not href.startswith('/blog/tags') else None)
     full_markdown = front_matter + re.sub(r'\n{3,}', '\n\n', markdown_body.strip())
     return full_markdown
 

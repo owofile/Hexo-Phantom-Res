@@ -1,68 +1,129 @@
-# Hexo HTML 转 Markdown 转换器
+# Hexo-Phantom-Res
 
-[English](./README.md) | [中文](./README.zh.md) | [日本語](./README.ja.md)
+<p align="center">
+   <img src="./logo.png" alt="Logo" width="200">
+</p>
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)](https://www.python.org/) [![Beautiful Soup](https://img.shields.io/badge/Beautiful_Soup-4.0+-green)](https://www.crummy.com/software/BeautifulSoup/) [![Markdownify](https://img.shields.io/badge/Markdownify-0.11.6-orange)](https://github.com/matthewwithanm/python-markdownify) [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+<p align="center">
+   <a href="./README.md">English</a> | <a href="./README.zh.md">中文</a> | <a href="./README.ja.md">日本語</a>
+</p>
+
+<p align="center">
+   <img src="https://img.shields.io/badge/Python-3.8%2B-blue?logo=python" alt="Python">
+   <img src="https://img.shields.io/badge/Beautiful_Soup-4.0+-green" alt="Beautiful Soup">
+   <img src="https://img.shields.io/badge/Markdownify-0.11.6-orange" alt="Markdownify">
+   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
+</p>
 
 ## 简介
 
-Hexo HTML 转 Markdown 转换器是一个 Python 脚本，用于将 Hexo 生成的 HTML 文件转换为 Markdown 文件。该工具提供了一个简单的 GUI 界面，用户可以选择源目录和输出目录，并通过单击按钮完成文件转换。转换过程中会保留文章元数据（如标题、日期和标签），并正确处理代码块。
+Hexo-Phantom-Res 是一个智能 Hexo 文章恢复工具包，支持多种 Hexo 主题的 HTML 结构自动识别与转换。
 
-## 使用指南
+**核心功能：**
+- 自动识别 10+ 种主流 Hexo 主题
+- 智能提取文章元数据（标题、日期、标签）
+- 正确处理代码块（保留语言标识、清除行号）
+- 输出标准 Hexo Markdown 格式
 
-### 1. 安装依赖项
+## 快速开始
 
-在运行工具之前，请确保已安装所需的 Python 库：
+### 方式一：GUI 图形界面
 
 ```bash
 pip install beautifulsoup4 markdownify
-
+python "Hexo Phantom Res.py"
 ```
-2. 下载脚本
-可以从 GitHub 或其他代码托管平台下载 Hexo Phantom Res.py 脚本。
 
-3. 运行脚本
-确保已安装所需依赖项，然后运行脚本：
+### 方式二：命令行脚本
 
 ```bash
-bash
-python Hexo Phantom Res.py
+pip install beautifulsoup4 markdownify
+python scripts/converter.py
 ```
 
-4. 使用 GUI 界面
-选择源目录：
-点击“选择源文件夹”按钮，选择包含 Hexo 生成的 HTML 文件的目录。
-脚本将自动查找目录及其子目录中的所有 index.html 文件。
-选择输出目录：
-点击“选择输出位置”按钮，选择转换后的 Markdown 文件将保存的目录。
-开始转换：
-点击“开始转换”按钮，开始将 HTML 文件转换为 Markdown 文件。
-进度条将显示转换进度，日志区域将记录每一步的状态。
-5. 查看结果
-转换完成后，可以在指定的输出目录中找到生成的 Markdown 文件。
+### 方式三：多 Agent 协调器
 
-示例
-假设你的源目录结构如下：
+```bash
+python scripts/agent_coordinator.py <源目录> <输出目录>
 ```
 
-source_dir/
-├── 2019/
-│   └── 10/
-│       └── 18/
-│           └── hexo/
-│               └── index.html
-└── 2020/
-    └── 01/
-        └── 01/
-            └── newblog/
-                └── index.html
+## 项目结构
 
 ```
+Hexo-Phantom-Res/
+├── Hexo Phantom Res.py      # GUI 主程序
+├── scripts/
+│   ├── converter.py         # 命令行转换器
+│   └── agent_coordinator.py # 多 Agent 协调器
+├── skills/
+│   ├── hexo-converter/      # 核心转换 Skill
+│   └── html-analyzer/       # HTML 结构分析 Skill
+├── references/
+│   ├── theme-patterns.md    # 主题结构参考
+│   └── fallback-guide.md    # 非 AI 环境使用指南
+├── evals/                   # 测试评估文件
+└── README.md
+```
 
-运行脚本并选择上述源目录和输出目录后，生成的 Markdown 文件将保存在输出目录中，文件名为 hexo.md 和 newblog.md。
+## 支持的主题
 
-源目录：确保源目录包含 Hexo 生成的 HTML 文件，且文件名为 index.html。
-输出目录：确保输出目录存在，或者脚本有权限创建新目录。
-代码块处理：工具会自动处理 Hexo 的高亮代码块和其他常规代码块，确保代码在输出中正确显示。
+| 主题 | 特征 | 支持状态 |
+|------|------|---------|
+| Redefine | `div.article-content`, `div.code-container` | ✅ 完全支持 |
+| Next | `div.post-content`, `figure.highlight` | ✅ 完全支持 |
+| Icarus | `article.post`, `pre.code` | ✅ 完全支持 |
+| Fluid | `div.article-content`, `hljs` | ✅ 完全支持 |
+| Matery | `div.post-detail` | ✅ 完全支持 |
+| Landscape | `article.post`, `table.highlight` | ✅ 完全支持 |
+| 其他主题 | 通用选择器适配 | ⚠️ 需要分析 |
 
-我们希望这个工具能帮助你顺利地将 Hexo 生成的 HTML 文件转换为 Markdown 文件！如果你有任何建议或改进建议，请随时告知我们。
+## OpenCode Skills
+
+将 `skills/` 目录放入 OpenCode 的 skills 目录即可使用：
+
+**hexo-converter**: Hexo HTML 转 Markdown 智能转换器
+- 自动识别主题类型
+- 适配多种选择器
+- 智能代码块处理
+
+**html-analyzer**: HTML 结构分析器
+- 诊断转换问题
+- 生成定制提取方案
+- 分析主题特征
+
+## 非 OpenCode 环境使用
+
+如果没有 OpenCode 或其他支持 Skill 的 AI，请参考：
+- `references/fallback-guide.md` - 完整的提示词模板
+- 任意 AI（ChatGPT、Claude 等）都能按照指南帮助转换
+
+## 输出格式
+
+输入：Hexo 生成的 `index.html`
+输出：标准 Hexo Markdown
+
+```markdown
+---
+title: 文章标题
+date: 2023-12-31 13:34:14
+tags: [标签1, 标签2]
+---
+
+# 文章标题
+
+正文内容...
+
+```yaml
+deploy:
+type: git
+repo: https://example.com/repo.git
+```
+```
+
+## 许可证
+
+MIT License
+
+## 联系方式
+
+- **GitHub Issues**: [提交问题](https://github.com/NANAFREE/Hexo-Phantom-Res/issues)

@@ -1,0 +1,20 @@
+{
+  "skill_name": "hexo-converter",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "将 D:/Github_Project/blog 目录下的所有 Hexo HTML 文章转换为 Markdown，输出到 D:/Github_Project/md 目录",
+      "expected_output": "标准 Hexo Markdown 格式，包含正确的 Front Matter、代码块和标签"
+    },
+    {
+      "id": 2,
+      "prompt": "分析 D:/Github_Project/blog 中的文章使用了哪个 Hexo 主题，并检查转换后的文件是否正确",
+      "expected_output": "识别主题名称，验证 HTML 结构与转换输出一致性"
+    },
+    {
+      "id": 3,
+      "prompt": "用户说「转换失败了，代码块显示不对」，检查并修复 D:/Github_Project/blog 中任意一篇文章的转换问题",
+      "expected_output": "正确识别代码块结构，无行号残留，语言标识正确"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
-# Hexo HTML to Markdown コンバーター
+# Hexo-Phantom-Res
 
 <p align="center">
-   <img src="./logo.png" alt="ロゴ" width="200">
+   <img src="./logo.png" alt="Logo" width="200">
 </p>
 
 <p align="center">
@@ -12,68 +12,118 @@
    <img src="https://img.shields.io/badge/Python-3.8%2B-blue?logo=python" alt="Python">
    <img src="https://img.shields.io/badge/Beautiful_Soup-4.0+-green" alt="Beautiful Soup">
    <img src="https://img.shields.io/badge/Markdownify-0.11.6-orange" alt="Markdownify">
-   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="ライセンス">
+   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
 </p>
 
 ## はじめに
 
-Hexo HTML to Markdown コンバーターは、Python スクリプトを使用して Hexo によって生成された HTML ファイルを Markdown ファイルに変換します。このツールは、ユーザーがソースディレクトリと出力ディレクトリを選択し、単一のクリックでファイルを変換できる簡単な GUI インターフェースを提供します。変換プロセスでは、タイトル、日付、タグなどの記事のメタデータが保持され、コードブロックも正しく処理されます。
+Hexo-Phantom-Res は、Hexo テーマの HTML 構造を自動識別し、変換をサポートする智能的な Hexo ブログ恢复ツールキットです。
 
-## 使用ガイド
+**主な機能：**
+- 10+ の主流 Hexo テーマを自動識別
+- メタデータ（タイトル、日付、タグ）の智能抽出
+- コードブロックの適切な処理（言語标识を保持、行番号を削除）
+- 標準 Hexo Markdown 形式を出力
 
-### 1. 依存関係のインストール
+## クイックスタート
 
-ツールを実行する前に、必要な Python ライブラリがインストールされていることを確認してください：
-
+### 方法1：GUI インターフェース
 
 ```bash
 pip install beautifulsoup4 markdownify
+python "Hexo Phantom Res.py"
 ```
-2. スクリプトのダウンロード
-Hexo Phantom Res.py スクリプトを GitHub または他のコードホスティングプラットフォームからダウンロードできます。
 
-3. スクリプトの実行
-必要な依存関係がインストールされていることを確認したら、スクリプトを実行します：
+### 方法2：コマンドライン
 
 ```bash
-bash
-python Hexo Phantom Res.py
+pip install beautifulsoup4 markdownify
+python scripts/converter.py
 ```
 
-4. GUI インターフェースの使用
-ソースディレクトリの選択:
-「ソースフォルダを選択」ボタンをクリックし、Hexo によって生成された HTML ファイルを含むディレクトリを選択します。
-スクリプトは自動的にディレクトリおよびサブディレクトリ内のすべての index.html ファイルを検索します。
-出力ディレクトリの選択:
-「出力位置を選択」ボタンをクリックし、変換後の Markdown ファイルが保存されるディレクトリを選択します。
-変換の開始:
-「変換を開始」ボタンをクリックして、HTML ファイルから Markdown ファイルへの変換を開始します。
-進行状況バーは変換の進行状況を表示し、ログ領域は各ステップの状態を記録します。
-5. 結果の確認
-変換が完了したら、指定した出力ディレクトリに生成された Markdown ファイルを見つけることができます。
+### 方法3：マルチ Agent コーディネーター
 
-例
-ソースディレクトリの構造が次のようになっているとします：
-
+```bash
+python scripts/agent_coordinator.py <ソースディレクトリ> <出力ディレクトリ>
 ```
 
-source_dir/
-├── 2019/
-│   └── 10/
-│       └── 18/
-│           └── hexo/
-│               └── index.html
-└── 2020/
-    └── 01/
-        └── 01/
-            └── newblog/
-                └── index.html
+## プロジェクト構造
 
 ```
+Hexo-Phantom-Res/
+├── Hexo Phantom Res.py      # GUI メprograms
+├── scripts/
+│   ├── converter.py         # CLI 変換器
+│   └── agent_coordinator.py # マルチ Agent コーディネーター
+├── skills/
+│   ├── hexo-converter/      # コア変換スキル
+│   └── html-analyzer/       # HTML 構造分析スキル
+├── references/
+│   ├── theme-patterns.md    # テーマ構造リファレンス
+│   └── fallback-guide.md    # 非 AI 環境ガイド
+├── evals/                   # テスト評価ファイル
+└── README.md
+```
 
-上記のソースディレクトリと出力ディレクトリを選択してスクリプトを実行すると、生成された Markdown ファイルは出力ディレクトリに保存され、ファイル名は hexo.md および newblog.md になります。
+## 対応テーマ
 
-ソースディレクトリ: ソースディレクトリには Hexo によって生成された HTML ファイルが含まれており、ファイル名は index.html である必要があります。
-出力ディレクトリ: 出力ディレクトリが存在するか、またはスクリプトが新しいディレクトリを作成する権限があることを確認してください。
-コードブロックの処理: このツールは Hexo のハイライトコードブロックおよびその他の一般的なコードブロックを自動的に処理し、出力でコードが正しく表示されるようにします。
-このツールが Hexo によって生成された HTML ファイルを Markdown ファイルにスムーズに変換できるようにお手伝いします。何か提案や改善点があれば、いつでもお知らせください。
+| テーマ | 特徴 | 状態 |
+|-------|------|------|
+| Redefine | `div.article-content`, `div.code-container` | ✅ 完全対応 |
+| Next | `div.post-content`, `figure.highlight` | ✅ 完全対応 |
+| Icarus | `article.post`, `pre.code` | ✅ 完全対応 |
+| Fluid | `div.article-content`, `hljs` | ✅ 完全対応 |
+| Matery | `div.post-detail` | ✅ 完全対応 |
+| Landscape | `article.post`, `table.highlight` | ✅ 完全対応 |
+| その他 | 汎用セレクター適応 | ⚠️ 分析が必要 |
+
+## OpenCode スキル
+
+`skills/` フォルダを OpenCode の skills ディレクトリに配置することで使用できます：
+
+**hexo-converter**: Hexo HTML から Markdown への智能変換器
+- テーマ类型を自動識別
+- 複数のセレクターに適応
+- コードブロックの智能処理
+
+**html-analyzer**: HTML 構造分析器
+- 変換の問題を診断
+- カスタム抽出ソリューションを生成
+- テーマの特性を分析
+
+## 非 OpenCode 環境での使用
+
+OpenCode またはその他のスキル支持的 AI をお持ちでない場合は、以下を参照してください：
+- `references/fallback-guide.md` - 完全なプロンプトテンプレート
+- 任意の AI（ChatGPT、Claude など）がガイドに従って変換を手伝うことができます
+
+## 出力形式
+
+入力：Hexo 生成の `index.html`
+出力：標準 Hexo Markdown
+
+```markdown
+---
+title: 記事タイトル
+date: 2023-12-31 13:34:14
+tags: [タグ1, タグ2]
+---
+
+# 記事タイトル
+
+コンテンツ...
+
+```yaml
+deploy:
+type: git
+repo: https://example.com/repo.git
+```
+```
+
+## ライセンス
+
+MIT License
+
+## お問い合わせ
+
+- **GitHub Issues**: [問題を提交](https://github.com/NANAFREE/Hexo-Phantom-Res/issues)
